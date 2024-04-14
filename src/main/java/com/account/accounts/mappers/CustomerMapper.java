@@ -17,10 +17,6 @@ public class CustomerMapper {
         customer.setName(customerDto.getName());
         customer.setEmail(customerDto.getEmail());
         customer.setMobileNumber(customerDto.getMobileNumber());
-        customer.setCreatedAt(LocalDateTime.now());
-        customer.setCreatedBy("GAtrix");
-//        customer.setUpdatedAt(LocalDateTime.now());
-//        customer.setUpdatedBy("Shankar");
         return customer;
     }
 }

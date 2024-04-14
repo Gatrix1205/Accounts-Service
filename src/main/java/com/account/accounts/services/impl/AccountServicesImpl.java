@@ -30,10 +30,6 @@ public class AccountServicesImpl implements IAccountServices {
     public void createAccount(CustomerDto customerDto) {
 
         Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
-//        customer.setCreatedAt(LocalDateTime.now());
-//        customer.setCreatedBy("gsilldaf");
-//        customer.setUpdatedAt(LocalDateTime.now());
-//        customer.setUpdatedBy("dvxsdv");
 
         Optional<Customer> optionalCustomer = customerRepository.findByMobileNumber(customerDto.getMobileNumber());
         if(optionalCustomer.isPresent()){
@@ -59,6 +55,40 @@ public class AccountServicesImpl implements IAccountServices {
         return customerDto;
     }
 
+    @Override
+    public boolean updateAccount(CustomerDto customerDto) {
+        boolean isUpdated = false;
+        AccountDto accountsDto = customerDto.getAccountDto();
+        if(accountsDto !=null ){
+            Account accounts = accountRepository.findById(accountsDto.getAccountNumber()).orElseThrow(
+                    () -> new ResourceNotFoundException("Account", "AccountNumber", accountsDto.getAccountNumber().toString())
+            );
+            AccountMapper.mapToAccounts(accountsDto, accounts);
+            accounts = accountRepository.save(accounts);
+
+            Long customerId = accounts.getCustomerId();
+            Customer customer = customerRepository.findById(customerId).orElseThrow(
+                    () -> new ResourceNotFoundException("Customer", "CustomerID", customerId.toString())
+            );
+            CustomerMapper.mapToCustomer(customerDto,customer);
+            customerRepository.save(customer);
+            isUpdated = true;
+        }
+        return  isUpdated;
+    }
+
+    @Override
+    public boolean deleteAccount(String mobileNumber) {
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "Not found", mobileNumber)
+        );
+        accountRepository.deleteByCustomerId(customer.getCustomerId());
+        customerRepository.deleteById(customer.getCustomerId());
+        return true;
+
+    }
+
+
     private Account createNewAccount(Customer customer) {
         Account newAccount = new Account();
         newAccount.setCustomerId(customer.getCustomerId());
@@ -67,10 +97,6 @@ public class AccountServicesImpl implements IAccountServices {
         newAccount.setAccountNumber(randomAccNumber);
         newAccount.setAccountType(AccountConstants.SAVINGS);
         newAccount.setBranchAddress(AccountConstants.ADDRESS);
-        newAccount.setCreatedAt(LocalDateTime.now());
-        newAccount.setCreatedBy("Gowri");
-        newAccount.setUpdatedAt(LocalDateTime.now());
-        newAccount.setUpdatedBy("Shankar");
         return newAccount;
     }
 }
